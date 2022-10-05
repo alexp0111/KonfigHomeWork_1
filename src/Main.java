@@ -62,7 +62,8 @@ public class Main {
                 }
                 case "cat" -> {
                     String text = archWorker.cat(commands);
-                    System.out.println(text);
+                    if (text.equals(ERROR_CODE_1) || text.equals(ERROR_CODE_2)) errorMsg(text);
+                    else System.out.println(text);
                 }
                 case "q" -> {
                     System.exit(0);
