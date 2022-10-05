@@ -27,14 +27,18 @@ public class ArchWorker {
             return currentDir;
         } else {
             String targetDir = corrected(commands[1]);
-            //TODO: separate dir & files |
-
             String targetPath = currentDir + targetDir;
 
-            if (paths.contains(targetPath)){
-                return targetPath;
+            if (paths.contains(targetPath) || paths.contains(targetPath + "/")){
+                if (isDirectory(targetPath)){
+                    currentDir = targetPath + "/";
+                    return currentDir;
+                } else {
+                    return Main.ERROR_CODE_2;
+                }
+            } else {
+                return Main.ERROR_CODE_1;
             }
-            return "sww";
         }
     }
 
@@ -50,6 +54,15 @@ public class ArchWorker {
     }
 
     private String corrected(String item){
-        return "tmp";
+        if ((item.endsWith("/")) || (item.endsWith("\\"))){
+            item = item.substring(0, item.length()-1);
+        }
+        return item;
+    }
+
+    private boolean isDirectory(String path){
+        int counter = 0;
+        for (String s : paths) if (s.contains(path)) counter++;
+        return counter != 1;
     }
 }
