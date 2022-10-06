@@ -21,9 +21,39 @@ public class ArchWorker {
         return currentDir;
     }
 
-    public String[] ls(String[] commands) {
-        String[] result = {"a", "b", "c"};
+    public ArrayList<String> ls(String[] commands) {
+        ArrayList<String> result = new ArrayList<>();
+
+        if (commands.length == 1) {
+            result = getDirContent();
+        } else {
+            // TODO: -l flag
+        }
         return result;
+    }
+
+    private ArrayList<String> getDirContent() {
+        ArrayList<String> result = new ArrayList<>();
+
+        for (String curPath : paths) {
+            if (curPath.endsWith("/")) curPath = curPath.substring(0, curPath.length() - 1);
+
+            if (curPath.contains(currentDir) && (!curPath.equals(currentDir)) &&
+                    ((getNesting(currentDir) == getNesting(curPath)) ||
+                            (((getNesting(curPath) - getNesting(currentDir)) == 1) && curPath.endsWith("/")))
+            ) {
+                int tmpIndex = curPath.lastIndexOf("/");
+                result.add(curPath.substring(tmpIndex));
+            }
+        }
+        return result;
+    }
+
+    private int getNesting(String str) {
+        int counter = 0;
+        for (int i = 0; i < str.length(); i++)
+            if (str.charAt(i) == '/') counter++;
+        return counter;
     }
 
     public String cd(String[] commands) {
@@ -31,16 +61,19 @@ public class ArchWorker {
             currentDir = paths.get(0);
             return currentDir;
         } else {
-            String targetDir = corrected(commands[1]);
+            String targetDir = commands[1];
+            targetDir = targetDir.replaceAll("\\\\", "/"); // 1-st correction
+
+            if (!targetDir.contains(".")) {
+                if (!targetDir.endsWith("/")) targetDir += "/"; // 2-d correction
+            } else {
+                return Main.ERROR_CODE_2;
+            }
             String targetPath = currentDir + targetDir;
 
-            if (paths.contains(targetPath) || paths.contains(targetPath + "/")) {
-                if (isDirectory(targetPath)) {
-                    currentDir = targetPath + "/";
-                    return currentDir;
-                } else {
-                    return Main.ERROR_CODE_2;
-                }
+            if (paths.contains(targetPath)) {
+                currentDir = targetPath;
+                return currentDir;
             } else {
                 return Main.ERROR_CODE_1;
             }
@@ -52,10 +85,10 @@ public class ArchWorker {
 
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
-        while(entries.hasMoreElements()) {
+        while (entries.hasMoreElements()) {
             String result = "";
             ZipEntry entry = entries.nextElement();
-            if (entry.getName().equals(currentDir + commands[1])){
+            if (entry.getName().equals(currentDir + commands[1])) {
                 InputStream stream = zipFile.getInputStream(entry);
 
                 Scanner s = new Scanner(stream).useDelimiter(" ");
@@ -70,7 +103,9 @@ public class ArchWorker {
     private void convert(Object[] input) {
         paths = new ArrayList<>();
         for (Object o : input) {
-            paths.add(o.toString());
+            String tmp = o.toString();
+            tmp = tmp.replaceAll("\\\\", "/");
+            paths.add(tmp);
         }
     }
 
@@ -79,11 +114,5 @@ public class ArchWorker {
             item = item.substring(0, item.length() - 1);
         }
         return item;
-    }
-
-    private boolean isDirectory(String path) {
-        int counter = 0;
-        for (String s : paths) if (s.contains(path)) counter++;
-        return counter != 1;
     }
 }

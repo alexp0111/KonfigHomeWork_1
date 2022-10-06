@@ -32,6 +32,12 @@ public class Main {
 
         String currentDirectory = arr[0].toString();
 
+        //for (Object o : arr) {
+        //    System.out.println(o);
+        //}
+
+        //System.out.println("==================");
+
 
         while (true) {
             System.out.print(ROOT + currentDirectory + POINTER);
@@ -50,7 +56,7 @@ public class Main {
                     System.out.println("Current directory is: " + curWrkPath);
                 }
                 case "ls" -> {
-                    String[] lsRes = archWorker.ls(commands);
+                    ArrayList<String> lsRes = archWorker.ls(commands);
                     for (String lsRe : lsRes) {
                         System.out.println(lsRe);
                     }
