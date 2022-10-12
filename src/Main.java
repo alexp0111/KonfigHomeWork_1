@@ -1,10 +1,6 @@
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Scanner;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class Main {
@@ -28,15 +24,10 @@ public class Main {
         ZipFile zipFile = new ZipFile(args[0]); // get Zip file
 
         Object[] arr = zipFile.stream().toArray(); // get List of all direct-s
-        ArchWorker archWorker = new ArchWorker(zipFile, arr);
+        ArrayList<String> converted = convert(arr);
+        ArchWorker archWorker = new ArchWorker(zipFile, converted);
 
-        String currentDirectory = arr[0].toString();
-
-        //for (Object o : arr) {
-        //    System.out.println(o);
-        //}
-
-        //System.out.println("==================");
+        String currentDirectory = converted.get(0);
 
 
         while (true) {
@@ -57,6 +48,9 @@ public class Main {
                 }
                 case "ls" -> {
                     ArrayList<String> lsRes = archWorker.ls(commands);
+                    if (lsRes.size() == 0) {
+                        errorMsg(ERROR_CODE_1);
+                    }
                     for (String lsRe : lsRes) {
                         System.out.println(lsRe);
                     }
@@ -85,5 +79,20 @@ public class Main {
             case ERROR_CODE_2 -> System.out.println(INPUT_NOT_DIRECTORY);
             default -> System.out.println(DEFAULT_OUTPUT);
         }
+    }
+
+    private static ArrayList<String> convert(Object[] input) {
+        ArrayList<String> paths = new ArrayList<>();
+
+        for (Object o : input) {
+            String tmp = o.toString();
+            tmp = tmp.replaceAll("\\\\", "/");
+            paths.add(tmp);
+        }
+
+        String rootDir = input[0].toString().substring(0, input[0].toString().indexOf("/")) + "/";
+        paths.add(0, rootDir);
+
+        return paths;
     }
 }

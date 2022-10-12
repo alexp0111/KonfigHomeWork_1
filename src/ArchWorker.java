@@ -11,10 +11,10 @@ public class ArchWorker {
     private ArrayList<String> paths;
     private ZipFile zipFile;
 
-    public ArchWorker(ZipFile zipFile, Object[] paths) {
-        convert(paths);
+    public ArchWorker(ZipFile zipFile, ArrayList<String> paths) {
+        this.paths = paths;
         this.zipFile = zipFile;
-        currentDir = paths[0].toString();
+        currentDir = paths.get(0);
     }
 
     public String pwd(String[] commands) {
@@ -25,22 +25,22 @@ public class ArchWorker {
         ArrayList<String> result = new ArrayList<>();
 
         if (commands.length == 1) {
-            result = getDirContent();
-        } else {
-            // TODO: -l flag
+            result = getDirContent(currentDir);
+        } else if ((commands.length == 2) && (!commands[1].contains("."))) {
+            result = getDirContent(currentDir + commands[1]);
         }
         return result;
     }
 
-    private ArrayList<String> getDirContent() {
+    private ArrayList<String> getDirContent(String pathToSearch) {
         ArrayList<String> result = new ArrayList<>();
 
         for (String curPath : paths) {
             if (curPath.endsWith("/")) curPath = curPath.substring(0, curPath.length() - 1);
 
-            if (curPath.contains(currentDir) && (!curPath.equals(currentDir)) &&
-                    ((getNesting(currentDir) == getNesting(curPath)) ||
-                            (((getNesting(curPath) - getNesting(currentDir)) == 1) && curPath.endsWith("/")))
+            if (curPath.contains(pathToSearch) && (!curPath.equals(pathToSearch)) &&
+                    ((getNesting(pathToSearch) == getNesting(curPath)) ||
+                            (((getNesting(curPath) - getNesting(pathToSearch)) == 1) && curPath.endsWith("/")))
             ) {
                 int tmpIndex = curPath.lastIndexOf("/");
                 result.add(curPath.substring(tmpIndex));
@@ -49,7 +49,7 @@ public class ArchWorker {
         return result;
     }
 
-    private int getNesting(String str) {
+    public int getNesting(String str) {
         int counter = 0;
         for (int i = 0; i < str.length(); i++)
             if (str.charAt(i) == '/') counter++;
@@ -98,21 +98,5 @@ public class ArchWorker {
             }
         }
         return "-1";
-    }
-
-    private void convert(Object[] input) {
-        paths = new ArrayList<>();
-        for (Object o : input) {
-            String tmp = o.toString();
-            tmp = tmp.replaceAll("\\\\", "/");
-            paths.add(tmp);
-        }
-    }
-
-    private String corrected(String item) {
-        if ((item.endsWith("/")) || (item.endsWith("\\"))) {
-            item = item.substring(0, item.length() - 1);
-        }
-        return item;
     }
 }
